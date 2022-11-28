@@ -27,15 +27,18 @@ class IndexTracker(object):
         ax.set_ylabel('slice %s' % self.ind)
         self.im.axes.figure.canvas.draw()
 
-mcc = MouseConnectivityCache()
+# mcc = MouseConnectivityCache()
+# experiment_id = 294481346
+# pd, pd_info = mcc.get_projection_density(experiment_id)
 
-experiment_id = 294481346
-
-pd, pd_info = mcc.get_projection_density(experiment_id)
+# array_to_visualise = pd
+# array_to_visualise = np.load('diff_VISpm_VISam.npy')
+# array_to_visualise = np.load('annotation.npy')
+array_to_visualise = np.load('VISpm_VISam_MD.npy')
 
 fig, ax = plt.subplots(1, 1)
 
-tracker = IndexTracker(ax, np.transpose(pd, (1, 2, 0)))
+tracker = IndexTracker(ax, np.transpose(array_to_visualise, (1, 2, 0)))
 
 fig.canvas.mpl_connect('scroll_event', tracker.onscroll)
 plt.show()
