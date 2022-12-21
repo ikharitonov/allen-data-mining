@@ -1,0 +1,19 @@
+{
+	"structures": [39,48,723,731,746,894,879,886],
+	"receptors_file_path": "/home/ikharitonov/Desktop/KR1/list_of_receptors.xlsx",
+	"output_file_path": "/home/ikharitonov/Desktop/v2m_inputs_antisense/",
+	"rma_query": {
+		"criteria": [
+			"products[abbreviation$eq'Mouse']",
+			"[failed$eqfalse]",
+			"probes[orientation_id$eq2]"
+		],
+		"include": [
+			"probes(orientation)",
+			"structure_unionizes"
+		]
+	},
+	"save_full_unionized_data": true,
+	"save_area_filtered_data": true,
+	"excel_data_to_save": ["expression_density","expression_energy","expression_intensity"]
+}
