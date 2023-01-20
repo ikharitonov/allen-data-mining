@@ -1,7 +1,7 @@
 {
-	"structures": [39,48,723,731,746,894,879,886],
+	"structures": [731,255,170,886,746,583,894,127,385,394,879,723,218,39,533,155,64,48],
 	"receptors_file_path": "/home/ikharitonov/Desktop/KR1/list_of_receptors.xlsx",
-	"output_file_path": "/home/ikharitonov/Desktop/v2m_inputs_antisense/",
+	"output_file_path": "/home/ikharitonov/Desktop/presynaptic_receptor_list/",
 	"rma_query": {
 		"criteria": [
 			"products[abbreviation$eq'Mouse']",

@@ -123,27 +123,27 @@ def save_to_excel(cfg):
         sheet2_df = pd.DataFrame(sheet2_df)
 
         # Taking an average over V2m structures
-        sheet3_df = []
-        for R in info_df['receptor'].unique():
-            # Selecting all experiment averages in three V2m structures
-            v2m_df = sheet2_df[(sheet2_df['receptor']==R) & (sheet2_df['structure_id']!=778)]
-            # Selecting all experiment averages in V1
-            v1_df = sheet2_df[(sheet2_df['receptor']==R) & (sheet2_df['structure_id']==778)]
-            # Set to temporary variable to 'null' if there are no averaged entries, else set to average
-            if len(v2m_df[v2m_df['average_'+variable].apply(lambda x: isinstance(x, float))])==0: v2m_exp_var = 'null'
-            else: v2m_exp_var = v2m_df['average_'+variable].mean()
-            if len(v1_df[v1_df['average_'+variable].apply(lambda x: isinstance(x, float))])==0: v1_exp_var = 'null'
-            else: v1_exp_var = v1_df['average_'+variable].item()
+#         sheet3_df = []
+#         for R in info_df['receptor'].unique():
+#             # Selecting all experiment averages in three V2m structures
+#             v2m_df = sheet2_df[(sheet2_df['receptor']==R) & (sheet2_df['structure_id']!=778)]
+#             # Selecting all experiment averages in V1
+#             v1_df = sheet2_df[(sheet2_df['receptor']==R) & (sheet2_df['structure_id']==778)]
+#             # Set to temporary variable to 'null' if there are no averaged entries, else set to average
+#             if len(v2m_df[v2m_df['average_'+variable].apply(lambda x: isinstance(x, float))])==0: v2m_exp_var = 'null'
+#             else: v2m_exp_var = v2m_df['average_'+variable].mean()
+#             if len(v1_df[v1_df['average_'+variable].apply(lambda x: isinstance(x, float))])==0: v1_exp_var = 'null'
+#             else: v1_exp_var = v1_df['average_'+variable].item()
 
-            sheet3_df.append({'receptor': R,'structure': 'V2m','average_'+variable: v2m_exp_var})
-            sheet3_df.append({'receptor': R,'structure': 'VISp5','average_'+variable: v1_exp_var})
-        sheet3_df = pd.DataFrame(sheet3_df)
+#             sheet3_df.append({'receptor': R,'structure': 'V2m','average_'+variable: v2m_exp_var})
+#             sheet3_df.append({'receptor': R,'structure': 'VISp5','average_'+variable: v1_exp_var})
+#         sheet3_df = pd.DataFrame(sheet3_df)
 
         # Save dataframes as excel files
         with pd.ExcelWriter(cfg["output_file_path"]+variable+'_data.xlsx') as writer:
             sheet1_df.to_excel(writer, sheet_name='Full Data')
             sheet2_df.to_excel(writer, sheet_name='Averaged Experiments')
-            sheet3_df.to_excel(writer, sheet_name='Averaged Structures')
+            # sheet3_df.to_excel(writer, sheet_name='Averaged Structures')
 
         print("Saving data to Excel completed.")
 
