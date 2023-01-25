@@ -2,7 +2,7 @@ import os
 import json
 from allensdk.api.queries.rma_api import RmaApi
 import pandas as pd
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 from math import isnan
 pd.options.mode.chained_assignment = None
 
