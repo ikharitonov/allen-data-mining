@@ -3,6 +3,7 @@ from brainrender.actors import Point
 import matplotlib
 import pickle
 import numpy as np
+from pathlib import Path
 
 # https://stackoverflow.com/questions/25408393/getting-individual-colors-from-a-color-map-in-matplotlib
 # 13200 µm x 8000 µm x 11400 µm
@@ -13,9 +14,10 @@ cmap = matplotlib.cm.get_cmap('Spectral')
 
 rgba = cmap(0.5)
 
-path = '/home/ikharitonov/Desktop/data/connectivity/'
+path = Path.home() / 'Desktop' / 'data' / 'connectivity'
 
-with open(path+'ipsilateral_centroids_dict_RSPagl_hem_1.pkl', 'rb') as f: ipsilateral_centroids_dict = pickle.load(f)
+filename = path / 'ipsilateral_centroids_dict_hem_1_VISam.pkl'
+with open(filename, 'rb') as f: ipsilateral_centroids_dict = pickle.load(f)
 
 # xyz = np.array([[area]])
 vals = ipsilateral_centroids_dict.values()
