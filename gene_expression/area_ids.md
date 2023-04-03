@@ -1,0 +1,7 @@
+2/3 layer areas:
+VISam2/3 ID 1066
+VISpm2/3 ID 41
+RSPagl2/3 ID 965
+VISp2/3 ID 821
+
+VISp ID 385
