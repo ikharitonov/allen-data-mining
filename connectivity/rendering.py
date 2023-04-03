@@ -37,9 +37,14 @@ scene = Scene(title="brain regions")
 scene.add_brain_region("VISam", "VISpm", "RSPagl", alpha=0.2, color="green")
 scene.add_brain_region("VISp", alpha=0.2, color="red")
 
-# for i in range(len(xyz)):
-#     c = matplotlib.colors.rgb2hex(cmap(norm(proj_metric[i])))
-#     scene.add(Point(xyz[i], name="Cells", color=c))
+for i in range(len(xyz)):
+    c = matplotlib.colors.rgb2hex(cmap(norm(proj_metric[i])))
+    scene.add(Point(xyz[i], name="Cells", color=c))
+
+print(scene.get_actors())
+
+actors = scene.get_actors()
+actors[0].cmap('copper',vals).addScalarBar()
 
 # Render!
 scene.render()
