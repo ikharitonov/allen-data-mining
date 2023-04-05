@@ -138,7 +138,7 @@ class RMAUnionizedData:
                 include_query = f'structure[id$eq{select_structure_id}]'
                 self.data = pd.DataFrame(rma.model_query("ProjectionStructureUnionize", criteria=criteria_query, start_row=start_row,num_rows=num_rows, include=include_query))
             else:
-                self.data = pd.DataFrame(rma.model_query("ProjectionStructureUnionize", criteria=criteria_query, start_row=start_row,num_rows=num_rows, include=include_query))
+                self.data = pd.DataFrame(rma.model_query("ProjectionStructureUnionize", criteria=criteria_query, start_row=start_row,num_rows=num_rows))
         
 class RMAExpressionData:
     """
