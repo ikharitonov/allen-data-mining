@@ -9,11 +9,11 @@ from pathlib import Path
 # 13200 µm x 8000 µm x 11400 µm
 
 # Parameters
-area = 'VISam'
-projection_metric = 'normalized_projection_volume'
+area = 'RSPagl'
+projection_metric = 'projection_energy'
 hemisphere_id = 1
 projection_type = 'ipsilateral'
-injection_volume_threshold = 0.5
+injection_volume_threshold = 0.01
 
 # Reading the file with centroids data
 path = Path.home() / 'Desktop' / 'data' / 'connectivity'
