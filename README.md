@@ -1,7 +1,7 @@
-# __Summary: mining data from Allen connectivity and ISH expression databases__
+# __Summary: mining data from Allen connectivity and In Situ Hybridization (ISH) databases__
 
 ## 1. Connectivity
-### 1.1. Allen Web Portal Overview
+### 1.1. Allen web portal overview
 
 The main Allen resource used for data mining in this repository is http://connectivity.brain-map.org/. It allows to specify source structure/s, see the experiments injected there and where they project. There also is a 'Target Search', which is replicated in this repository.
 
@@ -43,5 +43,14 @@ Other processing steps include quality checks for zero-valued experiments and th
 
 Several projecting experiments characterise the connectivity between Source and Target structures. In order to calculate the average projection per area, weighted centroids were used. Unionized data of each experiment contains xyz coordinates of injection in the Source structure. A mean of those was taken, weighted by the amount of projection into the Target area (can be specified, typically 'projection_energy' or 'normalized_projection_volume').
 
-## 2. ISH expression
+## 2. In Situ Hybridization
 
+### 2.1. ISH web portal overview
+
+The main web portal to access gene expression data, injection and target structures, experiments, expression summaries, expression visualisations (through online or offline version of 3D BrainExplorer tool), etc is https://mouse.brain-map.org/
+
+[This page](http://help.brain-map.org/display/mousebrain/In+Situ+Hybridization+%28ISH%29+Data) provides explanation of different functions available with the search. It covers [the syntax for search queries](http://help.brain-map.org/display/mousebrain/In+Situ+Hybridization+%28ISH%29+Data#InSituHybridization(ISH)Data-BooleanSyntaxQuery), [starting search from brain structures (Differential Search)](http://help.brain-map.org/display/mousebrain/In+Situ+Hybridization+%28ISH%29+Data#InSituHybridization(ISH)Data-DifferentialSearch) to find what genes they express, comparison to [human microarray datasets (Human Differential Search)](http://help.brain-map.org/display/mousebrain/In+Situ+Hybridization+%28ISH%29+Data#InSituHybridization(ISH)Data-HumanDifferentialSearch).
+
+Exploring genes with similar expression patterns to those queried is possible with [the Corrlative Search](http://help.brain-map.org/display/mousebrain/In+Situ+Hybridization+%28ISH%29+Data#InSituHybridization(ISH)Data-CorrelativeSearch). Once you click on an experiment, a panel to the right appears, which gives access to it.
+
+Details on [experimental detail](http://help.brain-map.org/display/mousebrain/In+Situ+Hybridization+%28ISH%29+Data#InSituHybridization(ISH)Data-ExperimentalDetail) and [image viewer](http://help.brain-map.org/display/mousebrain/In+Situ+Hybridization+%28ISH%29+Data#InSituHybridization(ISH)Data-ExperimentalDetail) are also available.
