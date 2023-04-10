@@ -9,16 +9,17 @@ from pathlib import Path
 # 13200 µm x 8000 µm x 11400 µm
 
 # Parameters
-area = 'RSPagl'
+area = 'VISam'
 projection_metric = 'projection_energy'
 hemisphere_id = 1
 projection_type = 'ipsilateral'
 injection_volume_threshold = 0.01
+projection_volume_threshold = 0.1
 
 # Reading the file with centroids data
 path = Path.home() / 'Desktop' / 'data' / 'connectivity'
-foldername = f'centroids_{projection_metric}_hem_id_{hemisphere_id}_inj_vol_thresh_{injection_volume_threshold}_{area}'
-filename = f'{projection_type}_centroids_dict_hem_{hemisphere_id}_inj_vol_thresh_{injection_volume_threshold}_{area}.pkl'
+foldername = f'centroids_{projection_metric}_hem_id_{hemisphere_id}_inj_vol_thresh_{injection_volume_threshold}_target_vol_thresh_{projection_volume_threshold}_{area}'
+filename = f'{projection_type}_centroids_dict_hem_{hemisphere_id}_inj_vol_thresh_{injection_volume_threshold}_target_vol_thresh_{projection_volume_threshold}_{area}.pkl'
 load_path = path / foldername / filename
 with open(load_path, 'rb') as f: centroids_dict = pickle.load(f)
 
@@ -35,7 +36,7 @@ with open(path / 'areas_acronyms.pkl', 'rb') as f: areas_acronyms_dict = pickle.
 norm = matplotlib.colors.Normalize(vmin=min(proj_metric), vmax=max(proj_metric))
 
 # Create a brainrender scene
-scene = Scene(title=f'{projection_type} {area} hem={hemisphere_id} inj_vol_thresh={injection_volume_threshold} {projection_metric}')
+scene = Scene(title=f'{projection_type} {area} hem={hemisphere_id} inj_vol_thresh={injection_volume_threshold} target_vol_thresh={projection_volume_threshold} {projection_metric}')
 
 # Adding brain regions to the plot
 scene.add_brain_region("VISam", "VISpm", "RSPagl", alpha=0.2, color="green")

@@ -95,7 +95,7 @@ class AllenConnectivity:
         del self.experiment_list
         self.experiment_list = experiment_list_inj_structs_removed
 
-    def mkdir(path):
+    def mkdir(self,path):
         if not os.path.exists(path): os.makedirs(path)
         return path
     
@@ -105,7 +105,7 @@ class AllenConnectivity:
         """
         area_experiment_unionized_data = {}
         foldername = f'{self.target_structure_name}_unionized_data'
-        for area, experiments in tqdm(self.experiment_list.items(),'Loading'):
+        for area, experiments in tqdm(self.experiment_list.items(),'Loading unionized data'):
             area_experiment_unionized_data[area] = {}
             for e in experiments:
                 filename = f'area_{area}_experiment_{e}.csv'
@@ -131,14 +131,7 @@ class AllenConnectivity:
                         temp_data.to_csv(self.save_path / foldername / filename)
         else: print('Unionized data already downloaded.')
 
-    # def load_unionized_data(self):
-    #     if self.read_unionized_data: 
-    #         self.unionized_data = self.unionized_data_from_csv_files()
-    #     else: 
-    #         self.unionized_data_RMA_query()
-    #         self.read_unionized_data = True
-
-    def get_hemisphere_from_z_coordinate(unionized_data):
+    def get_hemisphere_from_z_coordinate(self, unionized_data):
         """
         Returns the hemisphere_id of the row in passed unionized data with the biggest volume.
         
@@ -181,11 +174,12 @@ class AllenConnectivity:
             # Reading from a file
             filename = f'{self.target_structure_name}_experiment_list_filtered_by_hemisphere_{self.hemisphere_id_to_select}.pkl'
             with open(self.save_path / filename, 'rb') as f: experiment_list_filtered_by_hemisphere = pickle.load(f)
+            print('Experiment list loaded from file.')
         else:
             # Copy the dictionary
             experiment_list_filtered_by_hemisphere = {k:v.copy() for k,v in self.experiment_list.items()}
             exps_removed = []
-            for area, exps in tqdm(experiment_list_filtered_by_hemisphere.items()):
+            for area, exps in tqdm(experiment_list_filtered_by_hemisphere.items(), f'Only selecting experiments injectied in hemisphere_id = {self.hemisphere_id_to_select}'):
                 for e in exps:
                     ind = exps.index(e)
                     hem = self.check_hemisphere(e, area)
@@ -194,6 +188,7 @@ class AllenConnectivity:
             print(exps_removed)
             # Saving to a file
             filename = f'{self.target_structure_name}_experiment_list_filtered_by_hemisphere_{self.hemisphere_id_to_select}.pkl'
+            if os.path.isfile(self.save_path / filename): os.remove(self.save_path / filename)
             with open(self.save_path / filename, 'wb') as f: pickle.dump(experiment_list_filtered_by_hemisphere, f)
 
         del self.experiment_list
@@ -205,17 +200,22 @@ class AllenConnectivity:
 
         print(f'number of experiments BEFORE zero-valued projection QC = {sum(len(self.unionized_data[area]) for area in self.unionized_data.keys())}')
 
+        temp_experiment_list = {}
         temp_dict = {}
         for area in self.unionized_data:
             temp_dict[area] = {}
+            temp_experiment_list[area] = []
             for exp, exp_df in self.unionized_data[area].items():
                 if (exp_df[exp_df['structure_id']==self.target_structure_id][self.projection_metric] == 0).any():
                     continue
                 else:
                     temp_dict[area][exp] = exp_df
+                    temp_experiment_list[area].append(exp)
 
         del self.unionized_data
         self.unionized_data = temp_dict
+        del self.experiment_list
+        self.experiment_list = temp_experiment_list
 
         print(f'number of experiments AFTER zero-valued projection QC = {sum(len(self.unionized_data[area]) for area in self.unionized_data.keys())}')
 
@@ -229,15 +229,20 @@ class AllenConnectivity:
         print(f'number of experiments BEFORE injection volume thresholding = {sum(len(self.unionized_data[area]) for area in self.unionized_data.keys())}')
 
         temp_dict = {}
+        temp_experiment_list = {}
 
         for area in tqdm(self.unionized_data):
             temp_dict[area] = {}
+            temp_experiment_list[area] = []
             for exp, exp_df in self.unionized_data[area].items():
                 temp_vol = self.get_vol_from_downloaded_unionized_data(area, exp)
                 if temp_vol >= self.injection_volume_threshold:
                     temp_dict[area][exp] = self.unionized_data[area][exp]
+                    temp_experiment_list[area].append(exp)
         del self.unionized_data
         self.unionized_data = temp_dict
+        del self.experiment_list
+        self.experiment_list = temp_experiment_list
 
         print(f'number of experiments AFTER injection volume thresholding = {sum(len(self.unionized_data[area]) for area in self.unionized_data.keys())}')
 
@@ -248,6 +253,8 @@ class AllenConnectivity:
         self.contralateral_unionized_data = {}
 
         hem_ids = [2,1] # for getting the index of contralateral hemisphere to the one specified in the config
+        if self.projection_metric == self.metric_for_projection_thresholding: target_structure_fields_to_select = ['hemisphere_id',self.projection_metric]
+        else: target_structure_fields_to_select = ['hemisphere_id',self.projection_metric,self.metric_for_projection_thresholding]
 
         for area in self.unionized_data:
             self.ipsilateral_unionized_data[area] = {}
@@ -257,11 +264,11 @@ class AllenConnectivity:
                 if exp_df[(exp_df['hemisphere_id']==self.hemisphere_id_to_select) & (exp_df['structure_id']==self.target_structure_id)][self.projection_metric].item() > exp_df[(exp_df['hemisphere_id']==hem_ids[self.hemisphere_id_to_select-1]) & (exp_df['structure_id']==self.target_structure_id)][self.projection_metric].item():
                     # Taking coordinates data from the Source structure and joining it with projection metric data from Target structure (for the convenience of access later) in one dataframe
                     temp_df1 = exp_df[exp_df['structure_id']==area][['hemisphere_id','max_voxel_x','max_voxel_y','max_voxel_z']]
-                    temp_df2 = exp_df[exp_df['structure_id']==self.target_structure_id][['hemisphere_id',self.projection_metric]]
+                    temp_df2 = exp_df[exp_df['structure_id']==self.target_structure_id][target_structure_fields_to_select]
                     self.ipsilateral_unionized_data[area][exp] = temp_df1.merge(temp_df2, on='hemisphere_id')
                 else: 
                     temp_df1 = exp_df[exp_df['structure_id']==area][['hemisphere_id','max_voxel_x','max_voxel_y','max_voxel_z']]
-                    temp_df2 = exp_df[exp_df['structure_id']==self.target_structure_id][['hemisphere_id',self.projection_metric]]
+                    temp_df2 = exp_df[exp_df['structure_id']==self.target_structure_id][target_structure_fields_to_select]
                     self.contralateral_unionized_data[area][exp] = temp_df1.merge(temp_df2, on='hemisphere_id')
 
         print(f'{sum(len(self.ipsilateral_unionized_data[area]) for area in self.ipsilateral_unionized_data.keys())} ipsilaterally projecting experiments.')
@@ -278,17 +285,17 @@ class AllenConnectivity:
         temp_ipsilateral_dict = {}
         temp_contralateral_dict = {}
 
-        for area in tqdm(self.ipsilateral_unionized_data.keys, 'ipsilateral'):
+        for area in tqdm(self.ipsilateral_unionized_data.keys(), 'ipsilateral'):
             temp_ipsilateral_dict[area] = {}
             for exp, exp_df in self.ipsilateral_unionized_data[area].items():
-                proj_vol = exp_df[(exp_df['hemisphere_id']==self.hemisphere_id_to_select) & (exp_df['structure_id']==self.target_structure_id)][self.metric_for_projection_thresholding].item()
+                proj_vol = exp_df[exp_df['hemisphere_id']==self.hemisphere_id_to_select][self.metric_for_projection_thresholding].item()
                 if proj_vol >= self.projection_volume_threshold:
                     temp_ipsilateral_dict[area][exp] = exp_df
 
-        for area in tqdm(self.contralateral_unionized_data.keys, 'contralateral'):
+        for area in tqdm(self.contralateral_unionized_data.keys(), 'contralateral'):
             temp_contralateral_dict[area] = {}
             for exp, exp_df in self.contralateral_unionized_data[area].items():
-                proj_vol = exp_df[(exp_df['hemisphere_id']==hem_ids[self.hemisphere_id_to_select-1]) & (exp_df['structure_id']==self.target_structure_id)][self.metric_for_projection_thresholding].item()
+                proj_vol = exp_df[exp_df['hemisphere_id']==hem_ids[self.hemisphere_id_to_select-1]][self.metric_for_projection_thresholding].item()
                 if proj_vol >= self.projection_volume_threshold:
                     temp_contralateral_dict[area][exp] = exp_df
 
@@ -300,7 +307,7 @@ class AllenConnectivity:
         print(f'Number of ipsilateral experiments AFTER projection volume thresholding = {sum(len(self.ipsilateral_unionized_data[area]) for area in self.ipsilateral_unionized_data.keys())}')
         print(f'Number of contralateral experiments AFTER projection volume thresholding = {sum(len(self.contralateral_unionized_data[area]) for area in self.contralateral_unionized_data.keys())}')
 
-    def xyz_weighted_centroid(coordinates):
+    def xyz_weighted_centroid(self,coordinates):
         """
         Returns xyz coordinates of a centroid weighted by vertices and the associated average projection metric. Computed to determine central coordinate within a brain region, weighted by projection metric of each experiment injected in that region.
         
@@ -347,6 +354,6 @@ class AllenConnectivity:
         path = self.mkdir(folderpath)
 
         filename = f'ipsilateral_centroids_dict_hem_{self.hemisphere_id_to_select}_inj_vol_thresh_{self.injection_volume_threshold}_target_vol_thresh_{self.projection_volume_threshold}_{self.target_structure_name}.pkl'
-        with open(folderpath / filename, 'wb') as f: pickle.dump(self.ipsilateral_unionized_data, f)
+        with open(folderpath / filename, 'wb') as f: pickle.dump(self.ipsilateral_centroids_dict, f)
         filename = f'contralateral_centroids_dict_hem_{self.hemisphere_id_to_select}_inj_vol_thresh_{self.injection_volume_threshold}_target_vol_thresh_{self.projection_volume_threshold}_{self.target_structure_name}.pkl'
-        with open(folderpath / filename, 'wb') as f: pickle.dump(self.contralateral_unionized_data, f)
+        with open(folderpath / filename, 'wb') as f: pickle.dump(self.contralateral_centroids_dict, f)

@@ -1,10 +1,10 @@
 {
-	"target_structure": "VISam",
+	"target_structure": "VISpm",
 	"projection_metric": "projection_energy",
-	"hemisphere_id_to_select": 1,
+	"hemisphere_id_to_select": 2,
 	"injection_volume_threshold": 0.01,
     "projection_volume_threshold": 0.1,
 	"metric_for_projection_thresholding": "normalized_projection_volume",
 	"read_unionized_data": true,
-    "read_experiment_list": true
+    "read_experiment_list": false
 }
