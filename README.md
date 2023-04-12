@@ -149,7 +149,7 @@ exp_union_data.head()
 | 0.008171           | 1.097120          | 398484597 | 353                 | 15565        | ... |
 | ...                | ...               | ...       | ...                 | ...          | ... |
 
-As explained [here](http://help.brain-map.org/display/mousebrain/API#API-Expression3DGridsExpressionGridding), expression density, intensity and energy are interconnected in the following way:
+As explained [here](http://help.brain-map.org/display/mousebrain/API#API-Expression3DGridsExpressionGridding), expression density, intensity and energy are related to each other in the following way:
 
 ```python
 single_structure_df = exp_union_data[exp_union_data['structure_id']==15564]
@@ -203,7 +203,7 @@ print("expression density =", exp_union_data[exp_union_data['structure_id']==155
 expression density = 0.0123361
 ```
 
-__Alternative approach of accessing expression data__
+__Alternative approach for accessing expression data__
 
 It can be reached through [GridDataApi](https://allensdk.readthedocs.io/en/latest/allensdk.api.queries.grid_data_api.html). The type of data provided is explained [here](http://help.brain-map.org/display/api/Downloading+3-D+Expression+Grid+Data). This API allows downloading projection data as well.
 
@@ -214,6 +214,22 @@ gda = GridDataApi()
 # This downloads to local computer
 # gda.download_gene_expression_grid_data(352, GridDataApi.INTENSITY, '/local/path/')
 ```
+
+### 2.3. Pipeline for querying gene expression data
+
+ISH pipeline takes in a configuration file that specifies:
+- Target structures of interest (which are selected from unionized data)
+- File with the list of genes of interest for querying
+- Parameters for the RMA query (Sense/Antisense, exclude failed experiments, etc)
+- Expression metrics to save (density/intensity/energy)
+- ...
+
+For each of the receptors a RMA query is made, returning unionized data for all experiments available given the parameters specified. This is optionally saved into a CSV file.
+
+Expression values corresponding to Target structures are selected from sets of unionized records for each experiment. They are also optionally saved in CSV files e.g., 'gene\_Adra1a\_exp\_71152437\_query\_area\_id\_[433, 565, 774, 778].csv' for gene name 'Adra1a', experiment #71152437 and Target structure IDs #433, #565, #774, #778.
+
+Then, this data is saved into several Excel file for each expression metric. File has three sheets: full data, expression metric averaged over experiments, expression metric averaged over structures (defined in 'save_to_excel' function in 'ish_pipeline.py').
+
 
 ## 3. Allen Atlas: brain structure divisions and hierarchical sets
 
