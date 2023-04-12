@@ -28,6 +28,10 @@ class AllenConnectivity:
         self.save_path = save_path
 
         self.parse_config()
+        
+        # Create folder for results and save a copy of configuration file there
+        self.centroids_folder_path = self.save_path / f'centroids_{self.projection_metric}_hem_id_{self.hemisphere_id_to_select}_inj_vol_thresh_{self.injection_volume_threshold}_target_vol_thresh_{self.projection_volume_threshold}_{self.target_structure_name}'
+        with open(self.mkdir(self.centroids_folder_path) / 'config.json', 'w') as f: json.dump(self.config, f)
 
         self.target_structure_object = RMAStructure(acronym=self.target_structure_name)
         self.target_structure_id = self.target_structure_object.id
@@ -41,9 +45,28 @@ class AllenConnectivity:
         self.experiment_list = {area_id: list(self.experiment_metadata[self.experiment_metadata['structure-id']==area_id]['id']) for area_id in self.structure_set['id']}
         total_num_collected_exps = sum(len(self.experiment_list[area_id]) for area_id in self.experiment_list.keys())
 
-        print(len(self.experiment_list.keys()),"number of areas collected in the dictionary.")
-        print(total_num_collected_exps,"experiments collected in the dictionary.")
-    
+        out_str = []
+        out_str.append(f'{len(self.experiment_list.keys())} number of areas collected in the dictionary.')
+        out_str.append(f'{total_num_collected_exps} experiments collected in the dictionary.')
+        print(out_str[0])
+        print(out_str[1])
+
+        self.save_experiment_list_log('step_1_collected_from_web_metadata', [self.experiment_list, '\n'.join(out_str)])
+
+    def save_experiment_list_log(self, key_to_write, value_to_write):
+        temp_dict = {}
+        filename = f'experiment_list_log.pkl'
+
+        # Reading from a file
+        if os.path.isfile(self.centroids_folder_path / filename):
+            with open(self.centroids_folder_path / filename, 'rb') as f: temp_dict = pickle.load(f)
+
+        temp_dict[key_to_write] = value_to_write
+
+        # Saving to a file
+        if os.path.isfile(self.centroids_folder_path / filename): os.remove(self.centroids_folder_path / filename)
+        with open(self.centroids_folder_path / filename, 'wb') as f: pickle.dump(temp_dict, f)
+       
     def parse_config(self):
         """
         Loads parameters from the configuration file.
@@ -56,7 +79,7 @@ class AllenConnectivity:
         self.projection_volume_threshold = self.config["projection_volume_threshold"]
         self.metric_for_projection_thresholding = self.config["metric_for_projection_thresholding"]
         self.read_unionized_data = self.config["read_unionized_data"]
-        self.read_experiment_list = self.config["read_experiment_list"]
+        self.read_hemisphere_separated_experiment_list = self.config["read_hemisphere_separated_experiment_list"]
 
     def areas_experiments_cross_check(self):
         # make a copy of experiment metadata
@@ -89,11 +112,17 @@ class AllenConnectivity:
                 if self.target_structure_id in inj_structs_id_list: exps_removed.append(exp_id)
                 else: exps_ids_to_retain.append(exp_id)
             experiment_list_inj_structs_removed[area_id] = exps_ids_to_retain
-        print(f'{len(exps_removed)} experiments removed:')
-        print(exps_removed)
+        
+        out_str = []
+        out_str.append(f'{len(exps_removed)} experiments removed:')
+        print(out_str[-1])
+        out_str.append(str(exps_removed))
+        print(out_str[-1])
 
         del self.experiment_list
         self.experiment_list = experiment_list_inj_structs_removed
+
+        self.save_experiment_list_log('step_2_overlapping_injection_and_target_structures_removed', [self.experiment_list, '\n'.join(out_str)])
 
     def mkdir(self,path):
         if not os.path.exists(path): os.makedirs(path)
@@ -170,11 +199,13 @@ class AllenConnectivity:
         Removing all experiments that were not injected in the specified hemisphere.
         """
         
-        if self.read_experiment_list:
+        if self.read_hemisphere_separated_experiment_list:
             # Reading from a file
             filename = f'{self.target_structure_name}_experiment_list_filtered_by_hemisphere_{self.hemisphere_id_to_select}.pkl'
             with open(self.save_path / filename, 'rb') as f: experiment_list_filtered_by_hemisphere = pickle.load(f)
-            print('Experiment list loaded from file.')
+            out_str = []
+            out_str.append('Experiment list loaded from file.')
+            print(out_str[-1])
         else:
             # Copy the dictionary
             experiment_list_filtered_by_hemisphere = {k:v.copy() for k,v in self.experiment_list.items()}
@@ -184,21 +215,28 @@ class AllenConnectivity:
                     ind = exps.index(e)
                     hem = self.check_hemisphere(e, area)
                     if hem != self.hemisphere_id_to_select: exps_removed.append(experiment_list_filtered_by_hemisphere[area].pop(ind))
-            print(len(exps_removed),"experiments removed:")
-            print(exps_removed)
-            # Saving to a file
-            filename = f'{self.target_structure_name}_experiment_list_filtered_by_hemisphere_{self.hemisphere_id_to_select}.pkl'
-            if os.path.isfile(self.save_path / filename): os.remove(self.save_path / filename)
-            with open(self.save_path / filename, 'wb') as f: pickle.dump(experiment_list_filtered_by_hemisphere, f)
+            out_str = []
+            out_str.append(f'{len(exps_removed)} experiments removed:')
+            print(out_str[-1])
+            out_str.append(str(exps_removed))
+            print(out_str[-1])
+            # # Saving to a file
+            # filename = f'{self.target_structure_name}_experiment_list_filtered_by_hemisphere_{self.hemisphere_id_to_select}.pkl'
+            # if os.path.isfile(self.save_path / filename): os.remove(self.save_path / filename)
+            # with open(self.save_path / filename, 'wb') as f: pickle.dump(experiment_list_filtered_by_hemisphere, f)
 
         del self.experiment_list
         self.experiment_list = experiment_list_filtered_by_hemisphere
+
+        self.save_experiment_list_log(f'step_3_hemisphere_id_{self.hemisphere_id_to_select}_only_selected', [self.experiment_list, '\n'.join(out_str)])
 
     def zero_projection_QC(self):
         # Load the data because it is needed now to check projection values
         self.load_unionized_data()
 
-        print(f'number of experiments BEFORE zero-valued projection QC = {sum(len(self.unionized_data[area]) for area in self.unionized_data.keys())}')
+        out_str = []
+        out_str.append(f'number of experiments BEFORE zero-valued projection QC = {sum(len(self.unionized_data[area]) for area in self.unionized_data.keys())}')
+        print(out_str[-1])
 
         temp_experiment_list = {}
         temp_dict = {}
@@ -217,7 +255,10 @@ class AllenConnectivity:
         del self.experiment_list
         self.experiment_list = temp_experiment_list
 
-        print(f'number of experiments AFTER zero-valued projection QC = {sum(len(self.unionized_data[area]) for area in self.unionized_data.keys())}')
+        out_str.append(f'number of experiments AFTER zero-valued projection QC = {sum(len(self.unionized_data[area]) for area in self.unionized_data.keys())}')
+        print(out_str[-1])
+
+        self.save_experiment_list_log(f'step_4_zero_value_projection_experiments_removed', [self.experiment_list, '\n'.join(out_str)])
 
     def get_vol_from_downloaded_unionized_data(self, area, experiment):        
         # Query data for injection structure and return volume of injection hemisphere
@@ -226,7 +267,9 @@ class AllenConnectivity:
         return temp_data['volume'].item()
 
     def injection_volume_thresholding(self):
-        print(f'number of experiments BEFORE injection volume thresholding = {sum(len(self.unionized_data[area]) for area in self.unionized_data.keys())}')
+        out_str = []
+        out_str.append(f'number of experiments BEFORE injection volume thresholding = {sum(len(self.unionized_data[area]) for area in self.unionized_data.keys())}')
+        print(out_str[-1])
 
         temp_dict = {}
         temp_experiment_list = {}
@@ -244,7 +287,10 @@ class AllenConnectivity:
         del self.experiment_list
         self.experiment_list = temp_experiment_list
 
-        print(f'number of experiments AFTER injection volume thresholding = {sum(len(self.unionized_data[area]) for area in self.unionized_data.keys())}')
+        out_str.append(f'number of experiments AFTER injection volume thresholding = {sum(len(self.unionized_data[area]) for area in self.unionized_data.keys())}')
+        print(out_str[-1])
+
+        self.save_experiment_list_log(f'step_5_injection_volume_thresholding_done', [self.experiment_list, '\n'.join(out_str)])
 
     def separate_by_projection_hemisphere(self):
         # And collect experiments into two dictionaries based on hemisphere where projection metric is higher
@@ -271,14 +317,25 @@ class AllenConnectivity:
                     temp_df2 = exp_df[exp_df['structure_id']==self.target_structure_id][target_structure_fields_to_select]
                     self.contralateral_unionized_data[area][exp] = temp_df1.merge(temp_df2, on='hemisphere_id')
 
-        print(f'{sum(len(self.ipsilateral_unionized_data[area]) for area in self.ipsilateral_unionized_data.keys())} ipsilaterally projecting experiments.')
-        print(f'{sum(len(self.contralateral_unionized_data[area]) for area in self.contralateral_unionized_data.keys())} contralaterally projecting experiments.')
+        out_str = []
+        out_str.append(f'{sum(len(self.ipsilateral_unionized_data[area]) for area in self.ipsilateral_unionized_data.keys())} ipsilaterally projecting experiments.')
+        print(out_str[-1])
+        out_str.append(f'{sum(len(self.contralateral_unionized_data[area]) for area in self.contralateral_unionized_data.keys())} contralaterally projecting experiments.')
+        print(out_str[-1])
+
+        # Retrieving ipsilateral & contralateral experiment lists from unionized data to save them into the log file
+        ipsilateral_experiment_list = {area: list(self.ipsilateral_unionized_data[area].keys()) for area in self.ipsilateral_unionized_data.keys()}
+        contralateral_experiment_list = {area: list(self.contralateral_unionized_data[area].keys()) for area in self.contralateral_unionized_data.keys()}
+        self.save_experiment_list_log(f'step_6_separated_by_projection', [{'ipsilateral_experiment_list': ipsilateral_experiment_list, 'contralateral_experiment_list': contralateral_experiment_list}, '\n'.join(out_str)])
 
     def projection_volume_thresholding(self):
         # In ipsilateral experiments, thresholding is done on target structure in the same hemisphere as 'hemisphere_id_to_select'. In contralateral, the opposite.
 
-        print(f'Number of ipsilateral experiments BEFORE projection volume thresholding = {sum(len(self.ipsilateral_unionized_data[area]) for area in self.ipsilateral_unionized_data.keys())}')
-        print(f'Number of contralateral experiments BEFORE projection volume thresholding = {sum(len(self.contralateral_unionized_data[area]) for area in self.contralateral_unionized_data.keys())}')
+        out_str = []
+        out_str.append(f'Number of ipsilateral experiments BEFORE projection volume thresholding = {sum(len(self.ipsilateral_unionized_data[area]) for area in self.ipsilateral_unionized_data.keys())}')
+        print(out_str[-1])
+        out_str.append(f'Number of contralateral experiments BEFORE projection volume thresholding = {sum(len(self.contralateral_unionized_data[area]) for area in self.contralateral_unionized_data.keys())}')
+        print(out_str[-1])
 
         hem_ids = [2,1]
 
@@ -304,8 +361,15 @@ class AllenConnectivity:
         self.ipsilateral_unionized_data = temp_ipsilateral_dict
         self.contralateral_unionized_data = temp_contralateral_dict
         
-        print(f'Number of ipsilateral experiments AFTER projection volume thresholding = {sum(len(self.ipsilateral_unionized_data[area]) for area in self.ipsilateral_unionized_data.keys())}')
-        print(f'Number of contralateral experiments AFTER projection volume thresholding = {sum(len(self.contralateral_unionized_data[area]) for area in self.contralateral_unionized_data.keys())}')
+        out_str.append(f'Number of ipsilateral experiments AFTER projection volume thresholding = {sum(len(self.ipsilateral_unionized_data[area]) for area in self.ipsilateral_unionized_data.keys())}')
+        print(out_str[-1])
+        out_str.append(f'Number of contralateral experiments AFTER projection volume thresholding = {sum(len(self.contralateral_unionized_data[area]) for area in self.contralateral_unionized_data.keys())}')
+        print(out_str[-1])
+
+        # Retrieving ipsilateral & contralateral experiment lists from unionized data to save them into the log file
+        ipsilateral_experiment_list = {area: list(self.ipsilateral_unionized_data[area].keys()) for area in self.ipsilateral_unionized_data.keys()}
+        contralateral_experiment_list = {area: list(self.contralateral_unionized_data[area].keys()) for area in self.contralateral_unionized_data.keys()}
+        self.save_experiment_list_log(f'step_7_projection_volume_thresholding_done', [{'ipsilateral_experiment_list': ipsilateral_experiment_list, 'contralateral_experiment_list': contralateral_experiment_list}, '\n'.join(out_str)])
 
     def xyz_weighted_centroid(self,coordinates):
         """
@@ -334,26 +398,36 @@ class AllenConnectivity:
         self.ipsilateral_centroids_dict = {}
         self.contralateral_centroids_dict = {}
 
+        ipsilateral_exp_list_to_log = {}
+        contralateral_exp_list_to_log = {}
+
         for area in self.ipsilateral_unionized_data:
-            coordinates = [[exp[exp['hemisphere_id']==self.hemisphere_id_to_select]['max_voxel_x'].item(), exp[exp['hemisphere_id']==self.hemisphere_id_to_select]['max_voxel_y'].item(), exp[exp['hemisphere_id']==self.hemisphere_id_to_select]['max_voxel_z'].item(), exp[exp['hemisphere_id']==self.hemisphere_id_to_select][self.projection_metric].item()] for exp in self.ipsilateral_unionized_data[area].values()]
-            if len(coordinates) == 0: centroid_xyz = None
-            else: centroid_xyz = self.xyz_weighted_centroid(coordinates)
-            if centroid_xyz: self.ipsilateral_centroids_dict[area] = centroid_xyz
-        print(len(self.ipsilateral_centroids_dict.keys()),'ipsilateral centroids computed out of',str(len(self.ipsilateral_unionized_data.keys())),'regions')
+            xyz_metric_selection = {exp_id:[exp[exp['hemisphere_id']==self.hemisphere_id_to_select]['max_voxel_x'].item(), exp[exp['hemisphere_id']==self.hemisphere_id_to_select]['max_voxel_y'].item(), exp[exp['hemisphere_id']==self.hemisphere_id_to_select]['max_voxel_z'].item(), exp[exp['hemisphere_id']==self.hemisphere_id_to_select][self.projection_metric].item()] for exp_id, exp in self.ipsilateral_unionized_data[area].items()}
+            list_xyz_metric_selection = [l for l in xyz_metric_selection.values()]
+            if len(list_xyz_metric_selection) == 0: centroid_xyz = None
+            else: centroid_xyz = self.xyz_weighted_centroid(list_xyz_metric_selection)
+            if centroid_xyz: 
+                self.ipsilateral_centroids_dict[area] = centroid_xyz
+                ipsilateral_exp_list_to_log[area] = xyz_metric_selection
+        out_str = []
+        out_str.append(f'{len(self.ipsilateral_centroids_dict.keys())} ipsilateral centroids computed out of {len(self.ipsilateral_unionized_data.keys())} regions')
+        print(out_str[-1])
 
         for area in self.contralateral_unionized_data:
-            coordinates = [[exp[exp['hemisphere_id']==hem_ids[self.hemisphere_id_to_select-1]]['max_voxel_x'].item(), exp[exp['hemisphere_id']==hem_ids[self.hemisphere_id_to_select-1]]['max_voxel_y'].item(), exp[exp['hemisphere_id']==hem_ids[self.hemisphere_id_to_select-1]]['max_voxel_z'].item(), exp[exp['hemisphere_id']==hem_ids[self.hemisphere_id_to_select-1]][self.projection_metric].item()] for exp in self.contralateral_unionized_data[area].values()]
-            if len(coordinates) == 0: centroid_xyz = None
-            else: centroid_xyz = self.xyz_weighted_centroid(coordinates)
-            if centroid_xyz: self.contralateral_centroids_dict[area] = centroid_xyz
-        print(len(self.contralateral_centroids_dict.keys()),'contralateral centroids computed out of',str(len(self.contralateral_unionized_data.keys())),'regions')
+            xyz_metric_selection = {exp_id:[exp[exp['hemisphere_id']==self.hemisphere_id_to_select]['max_voxel_x'].item(), exp[exp['hemisphere_id']==self.hemisphere_id_to_select]['max_voxel_y'].item(), exp[exp['hemisphere_id']==self.hemisphere_id_to_select]['max_voxel_z'].item(), exp[exp['hemisphere_id']==self.hemisphere_id_to_select][self.projection_metric].item()] for exp_id, exp in self.ipsilateral_unionized_data[area].items()}
+            list_xyz_metric_selection = [l for l in xyz_metric_selection.values()]
+            if len(list_xyz_metric_selection) == 0: centroid_xyz = None
+            else: centroid_xyz = self.xyz_weighted_centroid(list_xyz_metric_selection)
+            if centroid_xyz:
+                self.contralateral_centroids_dict[area] = centroid_xyz
+                contralateral_exp_list_to_log[area] = xyz_metric_selection
+        out_str.append(f'{len(self.contralateral_centroids_dict.keys())} contralateral centroids computed out of {len(self.contralateral_unionized_data.keys())} regions')
+        print(out_str[-1])
+
+        self.save_experiment_list_log(f'step_8_data_used_for_centroids_computation_zero_experiment_areas_removed', [{'ipsilateral_xyz_coordinates': ipsilateral_exp_list_to_log, 'contralateral_xyz_coordinates': contralateral_exp_list_to_log}, '\n'.join(out_str)])
 
     def save_centroids(self):
-        foldername = f'centroids_{self.projection_metric}_hem_id_{self.hemisphere_id_to_select}_inj_vol_thresh_{self.injection_volume_threshold}_target_vol_thresh_{self.projection_volume_threshold}_{self.target_structure_name}'
-        folderpath = self.save_path / foldername
-        path = self.mkdir(folderpath)
-
         filename = f'ipsilateral_centroids_dict_hem_{self.hemisphere_id_to_select}_inj_vol_thresh_{self.injection_volume_threshold}_target_vol_thresh_{self.projection_volume_threshold}_{self.target_structure_name}.pkl'
-        with open(folderpath / filename, 'wb') as f: pickle.dump(self.ipsilateral_centroids_dict, f)
+        with open(self.centroids_folder_path / filename, 'wb') as f: pickle.dump(self.ipsilateral_centroids_dict, f)
         filename = f'contralateral_centroids_dict_hem_{self.hemisphere_id_to_select}_inj_vol_thresh_{self.injection_volume_threshold}_target_vol_thresh_{self.projection_volume_threshold}_{self.target_structure_name}.pkl'
-        with open(folderpath / filename, 'wb') as f: pickle.dump(self.contralateral_centroids_dict, f)
+        with open(self.centroids_folder_path / filename, 'wb') as f: pickle.dump(self.contralateral_centroids_dict, f)
