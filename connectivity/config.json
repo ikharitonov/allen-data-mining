@@ -1,5 +1,5 @@
 {
-	"target_structure": "VISpm",
+	"target_structure": "RSPagl",
 	"projection_metric": "projection_energy",
 	"hemisphere_id_to_select": 1,
 	"injection_volume_threshold": 0.01,

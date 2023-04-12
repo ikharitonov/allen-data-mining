@@ -9,21 +9,21 @@ class AllenConnectivity:
     """
     A class to handle loading of unionized data, filtering of experiments, quality checks, thresholding, separation of ipsilateral and contralateral projections.
     """
-    def __init__(self, config_path, data_path, save_path):
+    def __init__(self, input_config, data_path, save_path):
         """
-        Loads parameters from configuration file and metadata for experiments and brain areas.
+        Loads parameters from configuration file and metadata for experiments and brain areas. Copies configuration file into results directory and creates experiment list log.
         Experiment metadata is assumed to be contained in CSV files with target structure names (e.g., 'VISp.csv') in 'data_path' directory.
 
         Parameters
         ----------
-        config_path : str
-            Path to the JSON configuration file.
+        input_config : str or dict
+            Path to the JSON configuration file or a dictionary object.
         data_path : str
             Path to the directory where experiment metadata is stored.
         save_path :
             Path to the directory where downloaded data is to be saved.
         """
-        self.config_path = config_path
+        self.input_config = input_config
         self.data_path = data_path
         self.save_path = save_path
 
@@ -69,17 +69,30 @@ class AllenConnectivity:
        
     def parse_config(self):
         """
-        Loads parameters from the configuration file.
+        Loads parameters from the configuration file or dictionary.
         """
-        with open(self.config_path, 'r') as file: self.config = json.loads(file.read())
-        self.target_structure_name = self.config["target_structure"]
-        self.projection_metric = self.config["projection_metric"]
-        self.hemisphere_id_to_select = self.config["hemisphere_id_to_select"]
-        self.injection_volume_threshold = self.config["injection_volume_threshold"]
-        self.projection_volume_threshold = self.config["projection_volume_threshold"]
-        self.metric_for_projection_thresholding = self.config["metric_for_projection_thresholding"]
-        self.read_unionized_data = self.config["read_unionized_data"]
-        self.read_hemisphere_separated_experiment_list = self.config["read_hemisphere_separated_experiment_list"]
+        if type(self.input_config) == dict:
+            self.config = self.input_config
+            self.target_structure_name = self.config["target_structure"]
+            self.projection_metric = self.config["projection_metric"]
+            self.hemisphere_id_to_select = self.config["hemisphere_id_to_select"]
+            self.injection_volume_threshold = self.config["injection_volume_threshold"]
+            self.projection_volume_threshold = self.config["projection_volume_threshold"]
+            self.metric_for_projection_thresholding = self.config["metric_for_projection_thresholding"]
+            self.read_unionized_data = self.config["read_unionized_data"]
+            self.read_hemisphere_separated_experiment_list = self.config["read_hemisphere_separated_experiment_list"]
+        elif type(self.input_config) == str:
+            with open(self.input_config, 'r') as file: self.config = json.loads(file.read())
+            self.target_structure_name = self.config["target_structure"]
+            self.projection_metric = self.config["projection_metric"]
+            self.hemisphere_id_to_select = self.config["hemisphere_id_to_select"]
+            self.injection_volume_threshold = self.config["injection_volume_threshold"]
+            self.projection_volume_threshold = self.config["projection_volume_threshold"]
+            self.metric_for_projection_thresholding = self.config["metric_for_projection_thresholding"]
+            self.read_unionized_data = self.config["read_unionized_data"]
+            self.read_hemisphere_separated_experiment_list = self.config["read_hemisphere_separated_experiment_list"]
+        else:
+            print('Input configuration has unsupported type.')
 
     def areas_experiments_cross_check(self):
         # make a copy of experiment metadata
