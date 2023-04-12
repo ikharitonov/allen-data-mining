@@ -17,7 +17,7 @@ To match experiments to a consistent list of brain areas, the structure set #167
 
 ### 1.4. Pipeline for mining connectivity data, quality checking, filtering and thresholding
 
-Pipeline is composed of the following steps:
+Pipeline is composed of the following steps (shown in 'connectivity_pipeline.ipynb'):
 - Checking if all experiments have an area reference
 - Collecting experiments into a dictionary
 - Removing experiments where injection and target structures overlap (e.g., injection area includes RSPagl)
@@ -229,7 +229,6 @@ For each of the receptors a RMA query is made, returning unionized data for all 
 Expression values corresponding to Target structures are selected from sets of unionized records for each experiment. They are also optionally saved in CSV files e.g., 'gene\_Adra1a\_exp\_71152437\_query\_area\_id\_[433, 565, 774, 778].csv' for gene name 'Adra1a', experiment #71152437 and Target structure IDs #433, #565, #774, #778.
 
 Then, this data is saved into several Excel file for each expression metric. File has three sheets: full data, expression metric averaged over experiments, expression metric averaged over structures (defined in 'save_to_excel' function in 'ish_pipeline.py').
-
 
 ## 3. Allen Atlas: brain structure divisions and hierarchical sets
 
