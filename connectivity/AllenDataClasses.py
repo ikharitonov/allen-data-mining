@@ -31,6 +31,7 @@ class AllenConnectivity:
         
         # Create folder for results and save a copy of configuration file there
         self.centroids_folder_path = self.save_path / f'centroids_{self.projection_metric}_hem_id_{self.hemisphere_id_to_select}_inj_vol_thresh_{self.injection_volume_threshold}_target_vol_thresh_{self.projection_volume_threshold}_{self.target_structure_name}'
+        if os.path.isfile(self.centroids_folder_path / 'config.json'): os.remove(self.centroids_folder_path / 'config.json')
         with open(self.mkdir(self.centroids_folder_path) / 'config.json', 'w') as f: json.dump(self.config, f)
 
         self.target_structure_object = RMAStructure(acronym=self.target_structure_name)
@@ -214,8 +215,9 @@ class AllenConnectivity:
         
         if self.read_hemisphere_separated_experiment_list:
             # Reading from a file
-            filename = f'{self.target_structure_name}_experiment_list_filtered_by_hemisphere_{self.hemisphere_id_to_select}.pkl'
-            with open(self.save_path / filename, 'rb') as f: experiment_list_filtered_by_hemisphere = pickle.load(f)
+            filename = f'experiment_list_log.pkl'
+            with open(self.centroids_folder_path / filename, 'rb') as f: experiment_list_filtered_by_hemisphere = pickle.load(f)
+            experiment_list_filtered_by_hemisphere = experiment_list_filtered_by_hemisphere[f'step_3_hemisphere_id_{self.hemisphere_id_to_select}_only_selected'][0]
             out_str = []
             out_str.append('Experiment list loaded from file.')
             print(out_str[-1])
