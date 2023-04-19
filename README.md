@@ -1,6 +1,13 @@
 # __Summary: mining data from Allen connectivity and In Situ Hybridization (ISH) databases__
 
-## 1. Connectivity
+# Table of Contents
+1. [Connectivity](#connectivity)
+2. [In Situ Hybridization](#ish)
+3. [Allen Atlas: brain structure divisions and hierarchical sets](#atlases)
+4. [Data mining examples](#data-mining)
+5. [Visualisation examples](#visualisation)
+
+## 1. <a name=connectivity></a>Connectivity
 ### 1.1. Allen web portal overview
 
 The main Allen resource used for data mining in this repository is http://connectivity.brain-map.org/. It allows to specify source structure/s, see the experiments injected there and where they project. There also is a 'Target Search', which is replicated in this repository.
@@ -43,7 +50,7 @@ Other processing steps include quality checks for zero-valued experiments and th
 
 Several projecting experiments characterise the connectivity between Source and Target structures. In order to calculate the average projection per area, weighted centroids were used. Unionized data of each experiment contains xyz coordinates of injection in the Source structure. A mean of those was taken, weighted by the amount of projection into the Target area (can be specified, typically 'projection_energy' or 'normalized_projection_volume').
 
-## 2. In Situ Hybridization
+## 2. <a name=ish></a>In Situ Hybridization
 
 ### 2.1. ISH web portal overview
 
@@ -230,7 +237,7 @@ Expression values corresponding to Target structures are selected from sets of u
 
 Then, this data is saved into several Excel file for each expression metric. File has three sheets: full data, expression metric averaged over experiments, expression metric averaged over structures (defined in 'save_to_excel' function in 'ish_pipeline.py').
 
-## 3. Allen Atlas: brain structure divisions and hierarchical sets
+## 3. <a name=atlases></a>Allen Atlas: brain structure divisions and hierarchical sets
 
 There are many structural sets used in Allen Atlases. Their levels of coarseness are different. This is the list of main structure sets:
 
@@ -313,3 +320,15 @@ Below are some of the relevant structure sets which include visual areas.
 | List of visual cortex structures targeted for visual coding experiments | 514166994 | Allen Brain Observatory targeted structure set |
 | List of structures in Isocortex layer 5                                 | 667481446 | Isocortex layer 5                              |
 | Curated list of non-overlapping substructures at a mid-ontology level   | 167587189 | Brain – Summary Structures                     |
+
+## <a name=data-mining></a>Data mining examples
+
+```
+connectivity/connectivity_pipeline.ipynb :
+allows to specify areas, injection/projection thresholds and mine data (similar to Target search in http://connectivity.brain-map.org/)
+
+gene_expression/ish_pipeline.py : 
+queries ISH data (https://mouse.brain-map.org/) for a list of receptors and a list of areas specified in config file, creates summary Excel files
+```
+
+## <a name=visualisation></a>Visualisation examples
