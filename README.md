@@ -1,4 +1,4 @@
-# __Summary: mining data from Allen connectivity and In Situ Hybridization (ISH) databases__
+# __Mining data from Allen connectivity and In Situ Hybridization (ISH) databases__
 
 # Table of Contents
 1. [Connectivity](#connectivity)
