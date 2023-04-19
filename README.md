@@ -321,11 +321,27 @@ Below are some of the relevant structure sets which include visual areas.
 | List of structures in Isocortex layer 5                                 | 667481446 | Isocortex layer 5                              |
 | Curated list of non-overlapping substructures at a mid-ontology level   | 167587189 | Brain – Summary Structures                     |
 
-## <a name=data-mining></a>Data mining examples
+## 4. <a name=data-mining></a> Data mining examples
 
-_connectivity/__connectivity_pipeline.ipynb___ --> allows to specify areas, injection/projection thresholds and mine data (similar to Target search in http://connectivity.brain-map.org/)
+__connectivity/connectivity_pipeline.ipynb___ : allows to specify areas, injection/projection thresholds and mine data (similar to Target search in http://connectivity.brain-map.org/)
 
-_gene_expression/__ish_pipeline.py___ --> queries ISH data (https://mouse.brain-map.org/) for a list of receptors and a list of areas specified in config file, creates summary Excel files
+__gene_expression/ish_pipeline.py___ : queries ISH data (https://mouse.brain-map.org/) for a list of receptors and a list of areas specified in config file, creates summary Excel files
+
+__10x_genomics/pulling_data.py__ : extracts cell type cluster data from an Excel file provided (https://portal.brain-map.org/atlases-and-data/rnaseq/mouse-whole-cortex-and-hippocampus-10x)
+
+__connectivity/exploring_projections.ipynb__ : downloads projection data for several visual areas and computes brain-wide mean difference per area
+
+## 5. <a name=visualisation></a>Visualisation examples
+
+__visualisers/2D_centroids.ipynb__ : interactive 2D plots of areas across the brain projecting into target area of interest (uses data from __connectivity_pipeline.ipynb__)
+
+__visualisers/rendering.py__ : the same as above, but in 3D (needs [brainrender](https://docs.brainrender.info/) installed, see brainrender.yml)
+
+__visualisers/proj_slice_viewer.py__ : scroll through slices of 3D volume of mean (absolute) difference data created in __connectivity/exploring_projections.ipynb__
+
+__visualisers/slider_slice_viewer.py__ : has a slider and uses annotation information to display area names (needs data and _annotation.npy_ from __connectivity/exploring_projections.ipynb__)
 ```
-
-## <a name=visualisation></a>Visualisation examples
+# Run from console:
+python slider_slice_viewer.py /example/data/path/VISpm_VISam_MD.npy
+# annotation.npy is expected to be in the data directory
+```
