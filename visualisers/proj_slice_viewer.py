@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from allensdk.core.mouse_connectivity_cache import MouseConnectivityCache
+from pathlib import Path
 
 class IndexTracker(object):
     def __init__(self, ax, X):
@@ -31,10 +32,12 @@ class IndexTracker(object):
 # experiment_id = 294481346
 # pd, pd_info = mcc.get_projection_density(experiment_id)
 
+path = Path.home() / 'Desktop' / 'data' / 'connectivity' / 'mean_difference_single_hemisphere_data'
+
 # array_to_visualise = pd
 # array_to_visualise = np.load('diff_VISpm_VISam.npy')
 # array_to_visualise = np.load('annotation.npy')
-array_to_visualise = np.load('VISpm_VISam_MD.npy')
+array_to_visualise = np.load(path / 'VISpm_VISam_MAD.npy')
 
 fig, ax = plt.subplots(1, 1)
 

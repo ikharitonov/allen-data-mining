@@ -3,10 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
-# Put into repository
-# - practice documenting
-# - specify format of data input well, to be able to use it externally
-
 path = "/home/ikharitonov/Desktop/data/ish/postsynaptic_receptor_list/antisense/"
 
 density = np.array(pd.read_excel(path+"expression_density_data.xlsx")['expression_density'])
