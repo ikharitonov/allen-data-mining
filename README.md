@@ -1,6 +1,6 @@
 # __Mining data from Allen connectivity and In Situ Hybridization (ISH) databases__
 
-# Table of Contents
+## Table of Contents
 1. [Connectivity](#connectivity)
 2. [In Situ Hybridization](#ish)
 3. [Allen Atlas: brain structure divisions and hierarchical sets](#atlases)
