@@ -323,9 +323,9 @@ Below are some of the relevant structure sets which include visual areas.
 
 ## <a name=data-mining></a>Data mining examples
 
-_connectivity/connectivity_pipeline.ipynb_ --> allows to specify areas, injection/projection thresholds and mine data (similar to Target search in http://connectivity.brain-map.org/)
+_connectivity/__connectivity_pipeline.ipynb___ --> allows to specify areas, injection/projection thresholds and mine data (similar to Target search in http://connectivity.brain-map.org/)
 
-_gene_expression/ish_pipeline.py_ --> queries ISH data (https://mouse.brain-map.org/) for a list of receptors and a list of areas specified in config file, creates summary Excel files
+_gene_expression/__ish_pipeline.py___ --> queries ISH data (https://mouse.brain-map.org/) for a list of receptors and a list of areas specified in config file, creates summary Excel files
 ```
 
 ## <a name=visualisation></a>Visualisation examples
